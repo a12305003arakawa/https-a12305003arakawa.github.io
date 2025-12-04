@@ -1,0 +1,286 @@
+!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>集合時間調整アプリ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+
+/* ✅ 横はみ出し完全防止【最重要】 */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Noto Sans JP", sans-serif;
+  background: #f4f4f4;
+  text-align: center;
+  padding: 20px;
+}
+
+.box {
+  background: white;
+  padding: 22px;
+  max-width: 420px;
+  width: 100%;
+  margin: auto;
+  border-radius: 14px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* ✅ ラベル（クリック対応） */
+label {
+  display: block;
+  text-align: left;
+  font-weight: 700;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+
+/* ✅ 入力欄（横ピッタリ対応） */
+input {
+  padding: 12px;
+  font-size: 16px;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* ✅ 共通ボタン */
+button {
+  padding: 12px 0;
+  margin-top: 16px;
+  width: 100%;
+  border: none;
+  background: #ddd;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* ✅ 選択中ボタン */
+button.selected {
+  background: #4CAF50;
+  color: white;
+}
+
+/* ✅ 有効状態ボタン */
+button.ready {
+  background: #4CAF50;
+  color: white;
+}
+
+#finalTime {
+  font-size: 42px;
+  font-weight: 700;
+}
+
+#shareLink {
+  color: blue;
+  word-break: break-all;
+  user-select: all;
+}
+
+/* ✅ 質問ブロック */
+.question {
+  margin-top: 22px;
+}
+
+</style>
+</head>
+<body>
+
+<!-- ✅ ホスト -->
+<div id="host" class="box">
+  <h2>集合時間調整くん</h2>
+
+  <label for="hostDate">日付</label>
+  <input type="date" id="hostDate">
+
+  <label for="hostTime">集合時間</label>
+  <input type="time" id="hostTime">
+
+  <label for="hostPlace">集合場所</label>
+  <input type="text" id="hostPlace" placeholder="例：渋谷駅ハチ公前">
+
+  <label for="hostMemo">追記（任意）</label>
+  <input type="text" id="hostMemo" placeholder="例：雨天決行">
+
+  <button id="createBtn" onclick="createLink()">リンク作成</button>
+  <p id="shareLink"></p>
+</div>
+
+<!-- ✅ 診断 -->
+<div id="user" class="box" style="display:none;">
+  <h2>性格・体調診断</h2>
+
+  <div class="question">
+    <p>Q1：待ち合わせにはいつ着くことが多い？</p>
+    <button onclick="selectAnswer(this,0,2)">少し早め</button>
+    <button onclick="selectAnswer(this,0,0)">だいたいちょうど</button>
+    <button onclick="selectAnswer(this,0,-2)">ギリギリ / 遅れる</button>
+  </div>
+
+  <div class="question">
+    <p>Q2：昨日はよく寝られた？</p>
+    <button onclick="selectAnswer(this,1,2)">しっかり寝た</button>
+    <button onclick="selectAnswer(this,1,0)">まあまあ</button>
+    <button onclick="selectAnswer(this,1,-2)">ほとんど寝てない</button>
+  </div>
+
+  <div class="question">
+    <p>Q3：今の調子は？</p>
+    <button onclick="selectAnswer(this,2,2)">めっちゃ元気</button>
+    <button onclick="selectAnswer(this,2,0)">ふつう</button>
+    <button onclick="selectAnswer(this,2,-2)">正直しんどい</button>
+  </div>
+
+  <div class="question">
+    <p>Q4：移動のときは？</p>
+    <button onclick="selectAnswer(this,3,2)">余裕をもつ</button>
+    <button onclick="selectAnswer(this,3,0)">いつも通り</button>
+    <button onclick="selectAnswer(this,3,-2)">ギリギリ</button>
+  </div>
+
+  <div class="question">
+    <p>Q5：今回は遅れそうな不安ある？</p>
+    <button onclick="selectAnswer(this,4,1)">ない</button>
+    <button onclick="selectAnswer(this,4,0)">少し</button>
+    <button onclick="selectAnswer(this,4,-2)">かなりある</button>
+  </div>
+
+  <div class="question">
+    <p>Q6：今のやる気は？</p>
+    <button onclick="selectAnswer(this,5,2)">めっちゃある</button>
+    <button onclick="selectAnswer(this,5,0)">ふつう</button>
+    <button onclick="selectAnswer(this,5,-2)">あんまり…</button>
+  </div>
+
+  <div class="question">
+    <p>Q7：最近、時間にルーズ？</p>
+    <button onclick="selectAnswer(this,6,2)">なってない</button>
+    <button onclick="selectAnswer(this,6,0)">たまに</button>
+    <button onclick="selectAnswer(this,6,-2)">かなり</button>
+  </div>
+
+  <button id="resultBtn" onclick="showResult()" disabled>結果を見る</button>
+</div>
+
+<!-- ✅ 結果 -->
+<div id="result" class="box" style="display:none;">
+  <h2>あなたの集合時間</h2>
+  <p id="finalDate"></p>
+  <h1 id="finalTime"></h1>
+  <p id="finalPlace"></p>
+  <p id="finalMemo"></p>
+  <p id="typeText"></p>
+</div>
+
+<script>
+
+let baseTime="", baseDate="", basePlace="", baseMemo="";
+let answers=[null,null,null,null,null,null,null];
+
+// ✅ 入力完了でリンク作成ボタンON
+document.querySelectorAll("#host input").forEach(el=>{
+  el.addEventListener("input", ()=>{/* ✅ 日付・時間をクリックした瞬間に開く */
+document.addEventListener("DOMContentLoaded", () => {
+  const dateInput = document.getElementById("hostDate");
+  const timeInput = document.getElementById("hostTime");
+
+  if (dateInput.showPicker) {
+    dateInput.addEventListener("click", () => dateInput.showPicker());
+  }
+
+  if (timeInput.showPicker) {
+    timeInput.addEventListener("click", () => timeInput.showPicker());
+  }
+});
+    if(hostDate.value && hostTime.value && hostPlace.value){
+      createBtn.classList.add("ready");
+    }else{
+      createBtn.classList.remove("ready");
+    }
+  });
+});
+
+// ✅ リンク作成
+function createLink(){
+  const d = hostDate.value;
+  const t = hostTime.value;
+  const p = hostPlace.value;
+  const m = hostMemo.value;
+
+  if(!d || !t || !p){
+    alert("日付・時間・場所は必須です");
+    return;
+  }
+
+  const safe = encodeURIComponent(`${d}|${t}|${p}|${m}`);
+  const encoded = btoa(safe);
+  const url = location.href.split("?")[0] + "?t=" + encoded;
+
+  shareLink.innerText = url;
+}
+
+// ✅ 選択処理
+function selectAnswer(btn,index,val){
+  const buttons = btn.parentElement.querySelectorAll("button");
+  buttons.forEach(b=>b.classList.remove("selected"));
+  btn.classList.add("selected");
+
+  answers[index]=val;
+  resultBtn.disabled = answers.includes(null);
+  if(!resultBtn.disabled) resultBtn.classList.add("ready");
+}
+
+// ✅ 結果表示
+function showResult(){
+  const score = answers.reduce((a,b)=>a+b,0);
+  let adjust=score>=6?0:(score<=-6?-30:-10);
+
+  let [h,m]=baseTime.split(":").map(Number);
+  let total=h*60+m+adjust;
+
+  let nh=Math.floor((total+1440)%1440/60);
+  let nm=(total+1440)%60;
+
+  finalTime.innerText=`${String(nh).padStart(2,"0")}:${String(nm).padStart(2,"0")}`;
+  finalDate.innerText="日時📅： "+baseDate;
+  finalPlace.innerText="集合場所📍： "+basePlace;
+  finalMemo.innerText=baseMemo ? ""+baseMemo : "";
+  typeText.innerText =
+    adjust===0 ? "今回は余裕あり！" :
+    adjust===-10 ? "少し早め行動がおすすめ" :
+    "かなり早めの行動推奨！";
+
+  user.style.display="none";
+  result.style.display="block";
+}
+
+// ✅ URL受信
+const params=new URLSearchParams(location.search);
+const encoded=params.get("t");
+if(encoded){
+  const decoded=decodeURIComponent(atob(encoded));
+  const parts=decoded.split("|");
+
+  baseDate=parts[0];
+  baseTime=parts[1];
+  basePlace=parts[2];
+  baseMemo=parts[3]||"";
+
+  host.style.display="none";
+  user.style.display="block";
+}
+</script>
+
+</body>
+</html>
+<
