@@ -31,7 +31,7 @@ body {
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-/* ✅ ラベル（クリック対応） */
+/* ラベル */
 label {
   display: block;
   text-align: left;
@@ -41,17 +41,16 @@ label {
   cursor: pointer;
 }
 
-/* ✅ 入力欄（横ピッタリ対応） */
+/* 入力欄 */
 input {
   padding: 12px;
   font-size: 16px;
   width: 100%;
-  max-width: 100%;
   border-radius: 8px;
   border: 1px solid #ccc;
 }
 
-/* ✅ 共通ボタン */
+/* ボタン */
 button {
   padding: 12px 0;
   margin-top: 16px;
@@ -64,13 +63,13 @@ button {
   cursor: pointer;
 }
 
-/* ✅ 選択中ボタン */
+/* 選択ボタン */
 button.selected {
   background: #4CAF50;
   color: white;
 }
 
-/* ✅ 有効状態ボタン */
+/* 有効化ボタン */
 button.ready {
   background: #4CAF50;
   color: white;
@@ -87,7 +86,6 @@ button.ready {
   user-select: all;
 }
 
-/* ✅ 質問ブロック */
 .question {
   margin-top: 22px;
 }
@@ -96,7 +94,7 @@ button.ready {
 </head>
 <body>
 
-<!-- ✅ ホスト -->
+<!-- ホスト -->
 <div id="host" class="box">
   <h2>集合時間調整くん</h2>
 
@@ -110,13 +108,13 @@ button.ready {
   <input type="text" id="hostPlace" placeholder="例：渋谷駅ハチ公前">
 
   <label for="hostMemo">追記（任意）</label>
-  <input type="text" id="hostMemo" placeholder="例：雨天決行">
+  <input type="text" id="hostMemo" placeholder="例：遅れないようにね～">
 
   <button id="createBtn" onclick="createLink()">リンク作成</button>
   <p id="shareLink"></p>
 </div>
 
-<!-- ✅ 診断 -->
+<!-- 診断 -->
 <div id="user" class="box" style="display:none;">
   <h2>性格・体調診断</h2>
 
@@ -172,7 +170,7 @@ button.ready {
   <button id="resultBtn" onclick="showResult()" disabled>結果を見る</button>
 </div>
 
-<!-- ✅ 結果 -->
+<!-- 結果 -->
 <div id="result" class="box" style="display:none;">
   <h2>あなたの集合時間</h2>
   <p id="finalDate"></p>
@@ -183,25 +181,12 @@ button.ready {
 </div>
 
 <script>
-
 let baseTime="", baseDate="", basePlace="", baseMemo="";
 let answers=[null,null,null,null,null,null,null];
 
-// ✅ 入力完了でリンク作成ボタンON
+// 入力完了でボタンON
 document.querySelectorAll("#host input").forEach(el=>{
-  el.addEventListener("input", ()=>{/* ✅ 日付・時間をクリックした瞬間に開く */
-document.addEventListener("DOMContentLoaded", () => {
-  const dateInput = document.getElementById("hostDate");
-  const timeInput = document.getElementById("hostTime");
-
-  if (dateInput.showPicker) {
-    dateInput.addEventListener("click", () => dateInput.showPicker());
-  }
-
-  if (timeInput.showPicker) {
-    timeInput.addEventListener("click", () => timeInput.showPicker());
-  }
-});
+  el.addEventListener("input", ()=>{
     if(hostDate.value && hostTime.value && hostPlace.value){
       createBtn.classList.add("ready");
     }else{
@@ -210,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// ✅ リンク作成
+// リンク作成
 function createLink(){
   const d = hostDate.value;
   const t = hostTime.value;
@@ -229,7 +214,7 @@ function createLink(){
   shareLink.innerText = url;
 }
 
-// ✅ 選択処理
+// 選択処理
 function selectAnswer(btn,index,val){
   const buttons = btn.parentElement.querySelectorAll("button");
   buttons.forEach(b=>b.classList.remove("selected"));
@@ -240,41 +225,41 @@ function selectAnswer(btn,index,val){
   if(!resultBtn.disabled) resultBtn.classList.add("ready");
 }
 
-// ✅ 結果表示
+// 結果表示
 function showResult(){
   const score = answers.reduce((a,b)=>a+b,0);
-  let adjust=score>=6?0:(score<=-6?-30:-10);
+  let adjust = score >= 6 ? 0 : (score <= -6 ? -30 : -10);
 
-  let [h,m]=baseTime.split(":").map(Number);
-  let total=h*60+m+adjust;
+  let [h,m] = baseTime.split(":").map(Number);
+  let total = h*60 + m + adjust;
 
-  let nh=Math.floor((total+1440)%1440/60);
-  let nm=(total+1440)%60;
+  let nh = Math.floor((total+1440)%1440/60);
+  let nm = (total+1440)%60;
 
-  finalTime.innerText=`${String(nh).padStart(2,"0")}:${String(nm).padStart(2,"0")}`;
-  finalDate.innerText="日時📅： "+baseDate;
-  finalPlace.innerText="集合場所📍： "+basePlace;
-  finalMemo.innerText=baseMemo ? ""+baseMemo : "";
+  finalTime.innerText = `${String(nh).padStart(2,"0")}:${String(nm).padStart(2,"0")}`;
+  finalDate.innerText = "日時📅：" + baseDate;
+  finalPlace.innerText = "集合場所📍： " + basePlace;
+  finalMemo.innerText = baseMemo ? "" + baseMemo : "";
   typeText.innerText =
     adjust===0 ? "今回は余裕あり！" :
     adjust===-10 ? "少し早め行動がおすすめ" :
-    "かなり早めの行動推奨！";
+    "かなり早め行動推奨！";
 
   user.style.display="none";
   result.style.display="block";
 }
 
-// ✅ URL受信
-const params=new URLSearchParams(location.search);
-const encoded=params.get("t");
+// URL受信
+const params = new URLSearchParams(location.search);
+const encoded = params.get("t");
 if(encoded){
-  const decoded=decodeURIComponent(atob(encoded));
-  const parts=decoded.split("|");
+  const decoded = decodeURIComponent(atob(encoded));
+  const parts = decoded.split("|");
 
-  baseDate=parts[0];
-  baseTime=parts[1];
-  basePlace=parts[2];
-  baseMemo=parts[3]||"";
+  baseDate = parts[0];
+  baseTime = parts[1];
+  basePlace = parts[2];
+  baseMemo = parts[3] || "";
 
   host.style.display="none";
   user.style.display="block";
